@@ -29,7 +29,8 @@ def createFrameBE(frameSize, errorLen, nerrLen):#generates a frame with burst er
 
 def readFrame(frame, error, state, burstB, burstN):
     errorCount = 0;
-    errorB = error * ((burstB + burstN)/burstB);
+    if burstB > 0:
+        errorB = error * ((burstB + burstN)/burstB);
     for i in range(len(frame)):
         if state == "I":
             if(frame[i] <= error):
@@ -49,6 +50,10 @@ def calculateFrameSize(blockNum, blockSize, frameSize):
     totalSize = totalSize * blockNum;
     totalSize = totalSize + frameSize;
     return totalSize;
+
+def calculateStandardDev():
+    
+    return s;
 
 def main():
     
@@ -104,6 +109,7 @@ def main():
             
         print("trail " + str(i + 1) + " finished with " + str(finishedFrame) + " sent and " + str(timer/(totalSize+feedback_time)) + " total frames");
         totalGoodFrame += finishedFrame;
+        
         totalFrame += timer/(totalSize+feedback_time);
         totalTime += timer;
         
