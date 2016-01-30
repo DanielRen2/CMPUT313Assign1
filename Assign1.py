@@ -51,8 +51,16 @@ def calculateFrameSize(blockNum, blockSize, frameSize):
     totalSize = totalSize + frameSize;
     return totalSize;
 
-def calculateStandardDev():
-    
+def calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, totalFrame):
+    s = 0;
+    mean_avg = totalFrame/totalGoodFrame;
+    print("this is mean avg: " + str(mean_avg));
+    for i in range(trail_num):
+        print("this is frame avg: " + str(frameTransmissionAVG[i]));
+        print(((frameTransmissionAVG[i] - mean_avg)**2));
+        s = s + ((frameTransmissionAVG[i] - mean_avg)**2);
+    s = s/4;
+    s = math.sqrt(s);
     return s;
 
 def main():
@@ -79,8 +87,14 @@ def main():
     block_size = size_frame/num_blocks;
     #--------------------------------------------------------
     
-    totalSize = calculateFrameSize(num_blocks, block_size, size_frame);
+    #-----------variables from calculations----------------------
     
+    totalSize = calculateFrameSize(num_blocks, block_size, size_frame);
+    frameTransmissionAVG = [];
+    throughputAVG = [];
+    t_distribution = 2.776;#given by the lab, only works for 5 trails
+    #-------------------------------------------------------------
+      
     for i in range(trail_num):#adds seeds of trails into a trail array
         print("this is i : " + str(i))
         trails.append(int(sys.argv[9 + i + 1]));
@@ -108,12 +122,17 @@ def main():
             timer = timer + totalSize + feedback_time;
             
         print("trail " + str(i + 1) + " finished with " + str(finishedFrame) + " sent and " + str(timer/(totalSize+feedback_time)) + " total frames");
-        totalGoodFrame += finishedFrame;
+        frameTransmissionAVG.append((timer/(totalSize+feedback_time))/finishedFrame);#appends frame transmission
+        throughputAVG.append((size_frame*finishedFrame)/timer);
         
-        totalFrame += timer/(totalSize+feedback_time);
-        totalTime += timer;
+        totalGoodFrame += finishedFrame;#updates total number of frames finished
+        
+        totalFrame += timer/(totalSize+feedback_time);#updates total number of frames transmitted
+        totalTime += timer;#updates total time used
         
     print("average number of frame transmissions is " + str(totalFrame/totalGoodFrame))
+    s = calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, totalFrame);
+    print("this is standard deviation: " + str(s));
     print("throughput is " + str((size_frame*totalGoodFrame)/totalTime));
                     
     
