@@ -161,16 +161,26 @@ def main():
     if totalGoodFrame == 0:#deals with a situation where 0 frames are transmited
         print("a total of 0 frames where transmitted");
         exit();
+    
+    f = open("output.txt", "a");
+
 
     print("Inputs: " + str(error_model) + " " + str(feedback_time) + " " + str(num_blocks) + " " + str(size_frame) + " " + str(prob_error) + " " + str(burst_b) + " " + str(burst_n) + " " + str(length_sim) + " " + str(trail_num) + " " + str(trails[0]) + " " + str(trails[1]) + " " + str(trails[2]) + " " + str(trails[3]) + " " + str(trails[4]))
+    
+    f.write("Inputs: " + str(error_model) + " " + str(feedback_time) + " " + str(num_blocks) + " " + str(size_frame) + " " + str(prob_error) + " " + str(burst_b) + " " + str(burst_n) + " " + str(length_sim) + " " + str(trail_num) + " " + str(trails[0]) + " " + str(trails[1]) + " " + str(trails[2]) + " " + str(trails[3]) + " " + str(trails[4]) + "\n");
         
     s = calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, totalFrame);
     c1, c2 = calcCI(totalFrame/totalGoodFrame, s, t_distribution);
     print("Average Frame Transmission: " + str(totalFrame/totalGoodFrame) + " CI: " + str(c1) + " " + str(c2));
+    f.write("Average Frame Transmission: " + str(totalFrame/totalGoodFrame) + " CI: " + str(c1) + " " + str(c2) + "\n");
     
     s = calculateStandardDevT(throughputAVG, trail_num, totalGoodFrame, totalTime, size_frame);
     c1, c2 = calcCI((totalGoodFrame*size_frame)/totalTime, s, t_distribution);
-    print("Throughput Average: " +str((size_frame*totalGoodFrame)/totalTime) + " CI: " + str(c1) + " and: " + str(c2));
+    print("Throughput Average: " +str((size_frame*totalGoodFrame)/totalTime) + " CI: " + str(c1) + " " + str(c2));
+    f.write("Throughput Average: " +str((size_frame*totalGoodFrame)/totalTime) + " CI: " + str(c1) + " " + str(c2) + "\n");
+    f.write("\n");
+    
+    f.close();
     
 if __name__ == "__main__":
     main()
