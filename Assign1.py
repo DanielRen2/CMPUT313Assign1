@@ -27,7 +27,7 @@ def createFrameBE(frameSize, errorLen, nerrLen):#generates a frame with burst er
                 counter = 0;
     return frame;
 
-def readFrame(frame, error, state, burstB, burstN, block_size):#reads frame that has been generated and returns false if need to retransmit
+def readFrame(frame, error, state, burstB, burstN, block_size, checkbits):#reads frame that has been generated and returns false if need to retransmit
     errorCount = 0;
     counter = 0;
     if block_size == 0:
@@ -38,11 +38,15 @@ def readFrame(frame, error, state, burstB, burstN, block_size):#reads frame that
         if state == "I":
             if(frame[i] <= error):
                 errorCount += 1;
+                if checkbits == 0:
+                    return False;
                 if errorCount > 2:
                     return False;
         if state == "B":
             if(frame[i] <= errorB):
                 errorCount += 1;
+                if checkbits == 0:
+                    return False;                
                 if errorCount > 2:
                     return False;
         counter = counter + 1;
@@ -91,16 +95,7 @@ def calcCI(mean_avg, standardDev, t_dis):#calculates confidence intervals
     c2 = mean_avg + offset;  
     return c1, c2;
 
-def main():
-    
-    #assume all possible bit time that will be used are used
-    #assume receiver reads all bits every time
-    #time per cycle assuming no failures is F + r*k + A
-    #simulation time means bit unit time for each trail
-    
-    print("Number of arguments: " + str(len(sys.argv)) + " arguments");
-    print("first argument is: " + str(sys.argv[1]));
-    
+def main():   
     #------------variables from command line-----------------
     error_model = str(sys.argv[1]);
     feedback_time = int(sys.argv[2]);
@@ -112,14 +107,13 @@ def main():
     length_sim = int(sys.argv[8]);
     trail_num = int(sys.argv[9]);
     trails = [];
-    if num_blocks > 0:
+    if num_blocks > 0:#sets blocksize to 0 if k is 0
         block_size = size_frame/num_blocks;
     else:
         block_size = 0;
-    #--------------------------------------------------------
-    
+    #-------------------------------------------------------- 
     #-----------variables from calculations----------------------
-    if block_size > 0:
+    if block_size > 0:#finds checbits
         checkbits = int(math.log2(block_size));
     else:
         checkbits = 0;
@@ -130,48 +124,69 @@ def main():
     #-------------------------------------------------------------
       
     for i in range(trail_num):#adds seeds of trails into a trail array
-        print("this is i : " + str(i))
         trails.append(int(sys.argv[9 + i + 1]));
-        print ("this is trail " + str(trails[i]));
-    print("Feedback is " + str(feedback_time));
-    
-    print("block size is : " + str(block_size));
+
+    #-------temp tracking variables-----------
     totalGoodFrame = 0;
     totalFrame = 0;
     totalTime = 0;
+    #---------------------------------------
 
     for i in range(trail_num):
         random.seed(trails[i]);#sets the seed of the random number generator
         timer = 0;
         finishedFrame = 0;
         while timer <= length_sim:
-            if error_model == "I":
-                frame = createFrameSE(totalSize);
-            if error_model == "B":
-                frame = createFrameBE(totalSize, burst_b, burst_n);
-            result = readFrame(frame, prob_error, error_model, burst_b, burst_n, block_size + checkbits);#read frames
-            if(result == True):
-                finishedFrame += 1;
-            timer = timer + totalSize + feedback_time;
             
-        print("trail " + str(i + 1) + " finished with " + str(finishedFrame) + " sent and " + str(timer/(totalSize+feedback_time)) + " total frames");
-        frameTransmissionAVG.append((timer/(totalSize+feedback_time))/finishedFrame);#appends frame transmission
-        throughputAVG.append((size_frame*finishedFrame)/timer);
+            if error_model == "I":#initializes frames using independent error model
+                frame = createFrameSE(totalSize);
+            if error_model == "B":#initializes frames using burst error model
+                frame = createFrameBE(totalSize, burst_b, burst_n);
+                
+            result = readFrame(frame, prob_error, error_model, burst_b, burst_n, block_size + checkbits, checkbits);#read frames
+            
+            if(result == True):#increments frames if succesfull
+                finishedFrame += 1;
+            timer = timer + totalSize + feedback_time;#adds time to the clock
+            
+        print("trail " + str(i + 1) + " finished with " + str(finishedFrame) + " received and " + str(timer/(totalSize+feedback_time)) + " total frames transmitted");
+        
+        if finishedFrame == 0:#if no frames finish
+            print("no frames transmitted");
+            frameTransmissionAVG.append(0);#appends frame transmission
+            throughputAVG.append(0);            
+        else:
+            frameTransmissionAVG.append((timer/(totalSize+feedback_time))/finishedFrame);#appends frame transmission
+            throughputAVG.append((size_frame*finishedFrame)/timer);
         
         totalGoodFrame += finishedFrame;#updates total number of frames finished
-        
         totalFrame += timer/(totalSize+feedback_time);#updates total number of frames transmitted
         totalTime += timer;#updates total time used
         
     #results
-    print("average number of frame transmissions is " + str(totalFrame/totalGoodFrame))
+    if totalGoodFrame == 0:#deals with a situation where 0 frames are transmited
+        print("a total of 0 frames where transmitted");
+        exit();
+        
+        error_model = str(sys.argv[1]);
+        feedback_time = int(sys.argv[2]);
+        num_blocks = int(sys.argv[3]);
+        size_frame = int(sys.argv[4]);
+        prob_error = float(sys.argv[5]);
+        burst_b = int(sys.argv[6]);
+        burst_n = int(sys.argv[7]);
+        length_sim = int(sys.argv[8]);
+        trail_num = int(sys.argv[9]);
+        trails = [];        
+    print(str(error_model) + " " + str(feedback_time) + " " + str(num_blocks) + " " + str(size_frame) + " " + str(prob_error) + " " + str(burst_b) + " " + str(burst_n) + " " + str(length_sim) + " " + str(trail_num) + " " + str(trails[0]) + " " + str(trails[1]) + " " + str(trails[2]) + " " + str(trails[3]) + " " + str(trails[4]))
+        
     s = calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, totalFrame);
     c1, c2 = calcCI(totalFrame/totalGoodFrame, s, t_distribution);
-    print("FrameAVG This is c1: " + str(c1) + " this is c2: " + str(c2));
+    print("Average Frame Transmission: " + str(totalFrame/totalGoodFrame) + " CI: " + str(c1) + " " + str(c2));
+    
     s = calculateStandardDevT(throughputAVG, trail_num, totalGoodFrame, totalTime, size_frame);
     c1, c2 = calcCI((totalGoodFrame*size_frame)/totalTime, s, t_distribution);
-    print("throughput is " + str((size_frame*totalGoodFrame)/totalTime));
-    print("Throughput This is c1: " + str(c1) + " this is c2: " + str(c2));
+    print("Throughput Average: " +str((size_frame*totalGoodFrame)/totalTime) + " CI: " + str(c1) + " and: " + str(c2));
     
 if __name__ == "__main__":
     main()
