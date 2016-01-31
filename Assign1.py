@@ -163,19 +163,15 @@ def main():
         totalFrame += timer/(totalSize+feedback_time);#updates total number of frames transmitted
         totalTime += timer;#updates total time used
         
+    #results
     print("average number of frame transmissions is " + str(totalFrame/totalGoodFrame))
     s = calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, totalFrame);
-    
     c1, c2 = calcCI(totalFrame/totalGoodFrame, s, t_distribution);
     print("FrameAVG This is c1: " + str(c1) + " this is c2: " + str(c2));
-    
     s = calculateStandardDevT(throughputAVG, trail_num, totalGoodFrame, totalTime, size_frame);
-    
-    print("this is standard deviation: " + str(s));
     c1, c2 = calcCI((totalGoodFrame*size_frame)/totalTime, s, t_distribution);
-    print("Throughput This is c1: " + str(c1) + " this is c2: " + str(c2));
     print("throughput is " + str((size_frame*totalGoodFrame)/totalTime));
-                    
+    print("Throughput This is c1: " + str(c1) + " this is c2: " + str(c2));
     
 if __name__ == "__main__":
     main()
