@@ -53,7 +53,7 @@ def readFrame(frame, error, state, burstB, burstN, block_size, checkbits):#reads
         if(counter >= block_size):
             counter = 0;
             errorCount = 0;
-            
+        
     return True;
 
 def calculateFrameSize(blockNum, blockSize, frameSize):#calculates how many total checkbits are added to the frame
@@ -68,10 +68,7 @@ def calculateFrameSize(blockNum, blockSize, frameSize):#calculates how many tota
 def calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, totalFrame):#calculates standard devation of average frame transmission
     s = 0;
     mean_avg = totalFrame/totalGoodFrame;
-    #print("this is mean avg: " + str(mean_avg));
     for i in range(trail_num):
-        #print("this is frame avg: " + str(frameTransmissionAVG[i]));
-        #print(((frameTransmissionAVG[i] - mean_avg)**2));
         s = s + ((frameTransmissionAVG[i] - mean_avg)**2);
     s = s/4;
     s = math.sqrt(s);
@@ -80,10 +77,7 @@ def calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, total
 def calculateStandardDevT(throughputAVG, trail_num, totalGoodFrame, totalTime, frameSize):#calculates standard deviation of throughput
     s = 0;
     mean_avg = (totalGoodFrame*frameSize)/totalTime;
-    #print("this is mean avg: " + str(mean_avg));
     for i in range(trail_num):
-        #print("this is frame avg: " + str(frameTransmissionAVG[i]));
-        #print(((frameTransmissionAVG[i] - mean_avg)**2));
         s = s + ((throughputAVG[i] - mean_avg)**2);
     s = s/4;
     s = math.sqrt(s);
@@ -167,18 +161,8 @@ def main():
     if totalGoodFrame == 0:#deals with a situation where 0 frames are transmited
         print("a total of 0 frames where transmitted");
         exit();
-        
-        error_model = str(sys.argv[1]);
-        feedback_time = int(sys.argv[2]);
-        num_blocks = int(sys.argv[3]);
-        size_frame = int(sys.argv[4]);
-        prob_error = float(sys.argv[5]);
-        burst_b = int(sys.argv[6]);
-        burst_n = int(sys.argv[7]);
-        length_sim = int(sys.argv[8]);
-        trail_num = int(sys.argv[9]);
-        trails = [];        
-    print(str(error_model) + " " + str(feedback_time) + " " + str(num_blocks) + " " + str(size_frame) + " " + str(prob_error) + " " + str(burst_b) + " " + str(burst_n) + " " + str(length_sim) + " " + str(trail_num) + " " + str(trails[0]) + " " + str(trails[1]) + " " + str(trails[2]) + " " + str(trails[3]) + " " + str(trails[4]))
+
+    print("Inputs: " + str(error_model) + " " + str(feedback_time) + " " + str(num_blocks) + " " + str(size_frame) + " " + str(prob_error) + " " + str(burst_b) + " " + str(burst_n) + " " + str(length_sim) + " " + str(trail_num) + " " + str(trails[0]) + " " + str(trails[1]) + " " + str(trails[2]) + " " + str(trails[3]) + " " + str(trails[4]))
         
     s = calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, totalFrame);
     c1, c2 = calcCI(totalFrame/totalGoodFrame, s, t_distribution);
