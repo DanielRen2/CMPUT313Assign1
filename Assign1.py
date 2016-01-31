@@ -27,7 +27,7 @@ def createFrameBE(frameSize, errorLen, nerrLen):#generates a frame with burst er
                 counter = 0;
     return frame;
 
-def readFrame(frame, error, state, burstB, burstN, block_size):
+def readFrame(frame, error, state, burstB, burstN, block_size):#reads frame that has been generated and returns false if need to retransmit
     errorCount = 0;
     counter = 0;
     if block_size == 0:
@@ -52,7 +52,7 @@ def readFrame(frame, error, state, burstB, burstN, block_size):
             
     return True;
 
-def calculateFrameSize(blockNum, blockSize, frameSize):
+def calculateFrameSize(blockNum, blockSize, frameSize):#calculates how many total checkbits are added to the frame
     if blockNum == 0:
         return frameSize;
     totalSize = int(math.log2(blockSize));#calculates the number of checkbits for each block
@@ -61,7 +61,7 @@ def calculateFrameSize(blockNum, blockSize, frameSize):
     totalSize = totalSize + frameSize;
     return totalSize;
 
-def calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, totalFrame):
+def calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, totalFrame):#calculates standard devation of average frame transmission
     s = 0;
     mean_avg = totalFrame/totalGoodFrame;
     #print("this is mean avg: " + str(mean_avg));
@@ -73,7 +73,7 @@ def calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, total
     s = math.sqrt(s);
     return s;
 
-def calculateStandardDevT(throughputAVG, trail_num, totalGoodFrame, totalTime, frameSize):
+def calculateStandardDevT(throughputAVG, trail_num, totalGoodFrame, totalTime, frameSize):#calculates standard deviation of throughput
     s = 0;
     mean_avg = (totalGoodFrame*frameSize)/totalTime;
     #print("this is mean avg: " + str(mean_avg));
@@ -85,7 +85,7 @@ def calculateStandardDevT(throughputAVG, trail_num, totalGoodFrame, totalTime, f
     s = math.sqrt(s);
     return s;
 
-def calcCI(mean_avg, standardDev, t_dis):
+def calcCI(mean_avg, standardDev, t_dis):#calculates confidence intervals
     offset = (t_dis*(standardDev/math.sqrt(5)));
     c1 = mean_avg - offset;
     c2 = mean_avg + offset;  
