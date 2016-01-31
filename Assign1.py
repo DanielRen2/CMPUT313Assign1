@@ -30,6 +30,8 @@ def createFrameBE(frameSize, errorLen, nerrLen):#generates a frame with burst er
 def readFrame(frame, error, state, burstB, burstN, block_size):
     errorCount = 0;
     counter = 0;
+    if block_size == 0:
+        block_size = len(frame);
     if burstB > 0:
         errorB = error * ((burstB + burstN)/burstB);
     for i in range(len(frame)):
@@ -51,6 +53,8 @@ def readFrame(frame, error, state, burstB, burstN, block_size):
     return True;
 
 def calculateFrameSize(blockNum, blockSize, frameSize):
+    if blockNum == 0:
+        return frameSize;
     totalSize = int(math.log2(blockSize));#calculates the number of checkbits for each block
     print("Number of checkbits: " + str(totalSize));
     totalSize = totalSize * blockNum;
@@ -60,14 +64,32 @@ def calculateFrameSize(blockNum, blockSize, frameSize):
 def calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, totalFrame):
     s = 0;
     mean_avg = totalFrame/totalGoodFrame;
-    print("this is mean avg: " + str(mean_avg));
+    #print("this is mean avg: " + str(mean_avg));
     for i in range(trail_num):
-        print("this is frame avg: " + str(frameTransmissionAVG[i]));
-        print(((frameTransmissionAVG[i] - mean_avg)**2));
+        #print("this is frame avg: " + str(frameTransmissionAVG[i]));
+        #print(((frameTransmissionAVG[i] - mean_avg)**2));
         s = s + ((frameTransmissionAVG[i] - mean_avg)**2);
     s = s/4;
     s = math.sqrt(s);
     return s;
+
+def calculateStandardDevT(throughputAVG, trail_num, totalGoodFrame, totalTime, frameSize):
+    s = 0;
+    mean_avg = (totalGoodFrame*frameSize)/totalTime;
+    #print("this is mean avg: " + str(mean_avg));
+    for i in range(trail_num):
+        #print("this is frame avg: " + str(frameTransmissionAVG[i]));
+        #print(((frameTransmissionAVG[i] - mean_avg)**2));
+        s = s + ((throughputAVG[i] - mean_avg)**2);
+    s = s/4;
+    s = math.sqrt(s);
+    return s;
+
+def calcCI(mean_avg, standardDev, t_dis):
+    offset = (t_dis*(standardDev/math.sqrt(5)));
+    c1 = mean_avg - offset;
+    c2 = mean_avg + offset;  
+    return c1, c2;
 
 def main():
     
@@ -90,11 +112,17 @@ def main():
     length_sim = int(sys.argv[8]);
     trail_num = int(sys.argv[9]);
     trails = [];
-    block_size = size_frame/num_blocks;
+    if num_blocks > 0:
+        block_size = size_frame/num_blocks;
+    else:
+        block_size = 0;
     #--------------------------------------------------------
     
     #-----------variables from calculations----------------------
-    checkbits = int(math.log2(block_size));
+    if block_size > 0:
+        checkbits = int(math.log2(block_size));
+    else:
+        checkbits = 0;
     totalSize = calculateFrameSize(num_blocks, block_size, size_frame);
     frameTransmissionAVG = [];
     throughputAVG = [];
@@ -113,7 +141,6 @@ def main():
     totalTime = 0;
 
     for i in range(trail_num):
-        print("Size of transmitted frame : " + str(totalSize));
         random.seed(trails[i]);#sets the seed of the random number generator
         timer = 0;
         finishedFrame = 0;
@@ -138,7 +165,15 @@ def main():
         
     print("average number of frame transmissions is " + str(totalFrame/totalGoodFrame))
     s = calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, totalFrame);
+    
+    c1, c2 = calcCI(totalFrame/totalGoodFrame, s, t_distribution);
+    print("FrameAVG This is c1: " + str(c1) + " this is c2: " + str(c2));
+    
+    s = calculateStandardDevT(throughputAVG, trail_num, totalGoodFrame, totalTime, size_frame);
+    
     print("this is standard deviation: " + str(s));
+    c1, c2 = calcCI((totalGoodFrame*size_frame)/totalTime, s, t_distribution);
+    print("Throughput This is c1: " + str(c1) + " this is c2: " + str(c2));
     print("throughput is " + str((size_frame*totalGoodFrame)/totalTime));
                     
     
