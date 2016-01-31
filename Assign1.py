@@ -27,8 +27,9 @@ def createFrameBE(frameSize, errorLen, nerrLen):#generates a frame with burst er
                 counter = 0;
     return frame;
 
-def readFrame(frame, error, state, burstB, burstN):
+def readFrame(frame, error, state, burstB, burstN, block_size):
     errorCount = 0;
+    counter = 0;
     if burstB > 0:
         errorB = error * ((burstB + burstN)/burstB);
     for i in range(len(frame)):
@@ -41,7 +42,12 @@ def readFrame(frame, error, state, burstB, burstN):
             if(frame[i] <= errorB):
                 errorCount += 1;
                 if errorCount > 2:
-                    return False;            
+                    return False;
+        counter = counter + 1;
+        if(counter >= block_size):
+            counter = 0;
+            errorCount = 0;
+            
     return True;
 
 def calculateFrameSize(blockNum, blockSize, frameSize):
@@ -88,7 +94,7 @@ def main():
     #--------------------------------------------------------
     
     #-----------variables from calculations----------------------
-    
+    checkbits = int(math.log2(block_size));
     totalSize = calculateFrameSize(num_blocks, block_size, size_frame);
     frameTransmissionAVG = [];
     throughputAVG = [];
@@ -116,7 +122,7 @@ def main():
                 frame = createFrameSE(totalSize);
             if error_model == "B":
                 frame = createFrameBE(totalSize, burst_b, burst_n);
-            result = readFrame(frame, prob_error, error_model, burst_b, burst_n);
+            result = readFrame(frame, prob_error, error_model, burst_b, burst_n, block_size + checkbits);#read frames
             if(result == True):
                 finishedFrame += 1;
             timer = timer + totalSize + feedback_time;
