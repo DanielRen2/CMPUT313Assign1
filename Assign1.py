@@ -8,9 +8,9 @@ def createFrameSE(frameSize):#generate a block of a certain size with possible e
         frame.append(random.random());#adds a float between 0-1 to block
     return frame;
 
-def createFrameBE(frameSize, errorLen, nerrLen):#generates a frame with burst error
+def createFrameBE(frameSize, errorLen, nerrLen, counter):#generates a frame with burst error
     frame = [];
-    counter = 0;
+    #counter = 0;
     state = 1;
     for i in range(frameSize):#switches between states when counter reaches cap
         if(state == 1):
@@ -25,7 +25,7 @@ def createFrameBE(frameSize, errorLen, nerrLen):#generates a frame with burst er
             if(counter >= errorLen):
                 state = 1;
                 counter = 0;
-    return frame;
+    return frame, counter;
 
 def readFrame(frame, error, state, burstB, burstN, block_size, checkbits):#reads frame that has been generated and returns false if need to retransmit
     errorCount = 0;
@@ -130,12 +130,13 @@ def main():
         random.seed(trails[i]);#sets the seed of the random number generator
         timer = 0;
         finishedFrame = 0;
+        counter = 0;
         while timer <= length_sim:
             
             if error_model == "I":#initializes frames using independent error model
                 frame = createFrameSE(totalSize);
             if error_model == "B":#initializes frames using burst error model
-                frame = createFrameBE(totalSize, burst_b, burst_n);
+                frame, counter = createFrameBE(totalSize, burst_b, burst_n, counter);
                 
             result = readFrame(frame, prob_error, error_model, burst_b, burst_n, block_size + checkbits, checkbits);#read frames
             
