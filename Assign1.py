@@ -1,6 +1,7 @@
 import sys
 import math
 import random
+import csv
 
 def createFrameSE(frameSize):#generate a block of a certain size with possible errors
     frame = [];
@@ -165,13 +166,14 @@ def main():
     
     f = open("output.txt", "a");
 
-
     print("Inputs: " + str(error_model) + " " + str(feedback_time) + " " + str(num_blocks) + " " + str(size_frame) + " " + str(prob_error) + " " + str(burst_b) + " " + str(burst_n) + " " + str(length_sim) + " " + str(trail_num) + " " + str(trails[0]) + " " + str(trails[1]) + " " + str(trails[2]) + " " + str(trails[3]) + " " + str(trails[4]))
     
     f.write("Inputs: " + str(error_model) + " " + str(feedback_time) + " " + str(num_blocks) + " " + str(size_frame) + " " + str(prob_error) + " " + str(burst_b) + " " + str(burst_n) + " " + str(length_sim) + " " + str(trail_num) + " " + str(trails[0]) + " " + str(trails[1]) + " " + str(trails[2]) + " " + str(trails[3]) + " " + str(trails[4]) + "\n");
         
     s = calculateStandardDevF(frameTransmissionAVG, trail_num, totalGoodFrame, totalFrame);
     c1, c2 = calcCI(totalFrame/totalGoodFrame, s, t_distribution);
+    Fc1 = c1;
+    Fc2 = c2;
     print("Average Frame Transmission: " + str(totalFrame/totalGoodFrame) + " CI: " + str(c1) + " " + str(c2));
     f.write("Average Frame Transmission: " + str(totalFrame/totalGoodFrame) + " CI: " + str(c1) + " " + str(c2) + "\n");
     
@@ -182,6 +184,11 @@ def main():
     f.write("\n");
     
     f.close();
+    
+    with open('output.csv', 'a') as csvfile:
+        a = csv.writer(csvfile, delimiter=',')
+        data = [str(error_model), str(num_blocks), str(prob_error), str(burst_b), str(burst_n), str(totalFrame/totalGoodFrame), str(Fc1), str(Fc2), str((size_frame*totalGoodFrame)/totalTime), str(c1), str(c2)];
+        a.writerows([data])    
     
 if __name__ == "__main__":
     main()
